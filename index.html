@@ -19,10 +19,6 @@
   #rotate-msg .icon{font-size:60px;animation:rock 1.5s ease-in-out infinite}
   #rotate-msg .txt{font-size:18px;font-weight:700;opacity:0.8}
   @keyframes rock{0%,100%{transform:rotate(0deg)}25%{transform:rotate(20deg)}75%{transform:rotate(-20deg)}}
-  @media(orientation:portrait){
-    #rotate-msg{display:flex}
-    canvas{opacity:0;pointer-events:none}
-  }
 </style>
 </head>
 <body>
@@ -33,36 +29,33 @@
 <canvas id="c"></canvas>
 <script>
 const canvas=document.getElementById('c');
+const rotateMsg=document.getElementById('rotate-msg');
 const ctx=canvas.getContext('2d');
 let CW=0,CH=0;
+let isPortrait=false;
+
+function checkOrientation(){
+  const w=window.innerWidth, h=window.innerHeight;
+  isPortrait = h > w;
+  if(isPortrait){
+    rotateMsg.style.display='flex';
+  } else {
+    rotateMsg.style.display='none';
+  }
+}
 
 function resize(){
+  checkOrientation();
   const dpr=window.devicePixelRatio||1;
   CW=window.innerWidth;CH=window.innerHeight;
-  if(CW<=0||CH<=0) return; // skip if not visible yet
+  if(CW<=0||CH<=0) return;
   canvas.width=CW*dpr;canvas.height=CH*dpr;
   ctx.setTransform(dpr,0,0,dpr,0,0);
   maps=buildMaps();
 }
 resize();
-window.addEventListener('resize',resize);
-// Safari needs extra help on orientation change
-window.addEventListener('orientationchange',()=>{
-  setTimeout(resize,100);
-  setTimeout(resize,300);
-  setTimeout(resize,600);
-});
-// Also catch when canvas becomes visible again
-const observer=new MutationObserver(()=>{
-  if(canvas.offsetWidth>0&&canvas.offsetHeight>0) resize();
-});
-observer.observe(canvas,{attributes:true,attributeFilter:['style']});
-// Periodic check for first few seconds (Safari workaround)
-let resizeChecks=0;
-const resizeInterval=setInterval(()=>{
-  resize();
-  if(++resizeChecks>20) clearInterval(resizeInterval);
-},200);
+window.addEventListener('resize',()=>{ setTimeout(resize,50); setTimeout(resize,200); });
+window.addEventListener('orientationchange',()=>{ setTimeout(resize,100); setTimeout(resize,300); setTimeout(resize,600); });
 
 // =============================================
 //  CONFIG
@@ -975,6 +968,9 @@ function loop(now){
     if(flashAlpha>0) flashAlpha-=dt*1.2;
     if(restartTimer>0) restartTimer-=dt;
   }
+
+  // Skip drawing in portrait mode
+  if(isPortrait){ requestAnimationFrame(loop); return; }
 
   ctx.save();
   if(shakeTimer>0) ctx.translate((Math.random()-0.5)*shakeIntensity*2,(Math.random()-0.5)*shakeIntensity*2);
