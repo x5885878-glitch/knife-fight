@@ -34,7 +34,7 @@ function resize(){
 // =============================================
 const GRAVITY=1400;
 const JUMP_VEL=-520;
-const WALK_SPEED=72;
+const WALK_SPEED=79;
 const KNIFE_SPEED=500;
 const KNIFE_GRAVITY=180;
 const AIM_SPEED=2.5;
@@ -315,13 +315,6 @@ function updateKnives(dt){
 
     // Out of bounds
     if(k.x<-50 || k.x>CW+50 || k.y<-50){ knives.splice(i,1); continue; }
-
-    // Platform
-    for(const pl of getPlats()){
-      if(k.x>pl.x && k.x<pl.x+pl.w && k.y>pl.y && k.y<pl.y+pl.h+6){
-        k.active=false; k.y=pl.y; spawnSparks(k.x,pl.y); break;
-      }
-    }
   }
 }
 
