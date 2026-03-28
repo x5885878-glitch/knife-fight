@@ -21,7 +21,7 @@
   @keyframes rock{0%,100%{transform:rotate(0deg)}25%{transform:rotate(20deg)}75%{transform:rotate(-20deg)}}
   @media(orientation:portrait){
     #rotate-msg{display:flex}
-    canvas{display:none}
+    canvas{opacity:0;pointer-events:none}
   }
 </style>
 </head>
@@ -39,13 +39,30 @@ let CW=0,CH=0;
 function resize(){
   const dpr=window.devicePixelRatio||1;
   CW=window.innerWidth;CH=window.innerHeight;
+  if(CW<=0||CH<=0) return; // skip if not visible yet
   canvas.width=CW*dpr;canvas.height=CH*dpr;
   ctx.setTransform(dpr,0,0,dpr,0,0);
-  // Rebuild maps whenever screen size changes
   maps=buildMaps();
 }
 resize();
 window.addEventListener('resize',resize);
+// Safari needs extra help on orientation change
+window.addEventListener('orientationchange',()=>{
+  setTimeout(resize,100);
+  setTimeout(resize,300);
+  setTimeout(resize,600);
+});
+// Also catch when canvas becomes visible again
+const observer=new MutationObserver(()=>{
+  if(canvas.offsetWidth>0&&canvas.offsetHeight>0) resize();
+});
+observer.observe(canvas,{attributes:true,attributeFilter:['style']});
+// Periodic check for first few seconds (Safari workaround)
+let resizeChecks=0;
+const resizeInterval=setInterval(()=>{
+  resize();
+  if(++resizeChecks>20) clearInterval(resizeInterval);
+},200);
 
 // =============================================
 //  CONFIG
