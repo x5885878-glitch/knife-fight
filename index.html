@@ -779,17 +779,18 @@ function drawHUD(){
   const sz=Math.min(CW*0.028,16);
   ctx.font=`700 ${sz}px Chakra Petch,sans-serif`;
 
-  // P1 left
+  // Red team - left side (moved inward)
+  const inset = Math.max(40, CW*0.06);
   ctx.textAlign='left';ctx.fillStyle=P_COLORS[0];
   ctx.shadowColor=P_COLORS[0];ctx.shadowBlur=4;
-  ctx.fillText(P_NAMES[0],8,sz+4);ctx.shadowBlur=0;
-  for(let i=0;i<MAX_HP;i++) drawHeart(32+i*16,sz/2+2,i<players[0].hp?'#ff4455':'#333',6);
+  ctx.fillText(P_NAMES[0],inset,sz+8);ctx.shadowBlur=0;
+  for(let i=0;i<MAX_HP;i++) drawHeart(inset+24+i*16,sz/2+6,i<players[0].hp?'#ff4455':'#333',6);
 
-  // P2 right
+  // Blue team - right side (moved inward)
   ctx.textAlign='right';ctx.fillStyle=P_COLORS[1];
   ctx.shadowColor=P_COLORS[1];ctx.shadowBlur=4;
-  ctx.fillText(P_NAMES[1],CW-8,sz+4);ctx.shadowBlur=0;
-  for(let i=0;i<MAX_HP;i++) drawHeart(CW-34-i*16,sz/2+2,i<players[1].hp?'#44aaff':'#333',6);
+  ctx.fillText(P_NAMES[1],CW-inset,sz+8);ctx.shadowBlur=0;
+  for(let i=0;i<MAX_HP;i++) drawHeart(CW-inset-26-i*16,sz/2+6,i<players[1].hp?'#44aaff':'#333',6);
 
   // Hint
   ctx.textAlign='center';
