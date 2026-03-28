@@ -28,9 +28,6 @@ function resize(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
   maps=buildMaps();
 }
-resize();
-window.addEventListener('resize',resize);
-window.addEventListener('orientationchange',()=>{setTimeout(resize,150);});
 
 // =============================================
 //  CONFIG
@@ -115,9 +112,14 @@ function buildMaps(){
     }
   ];
 }
-let maps=buildMaps();
+let maps=[];
 const MAPS_COUNT=3;
 const P_COLORS=['#ff4455','#44aaff'];
+
+// Now safe to call resize (all constants defined)
+resize();
+window.addEventListener('resize',resize);
+window.addEventListener('orientationchange',()=>{setTimeout(resize,150);});
 
 // =============================================
 //  GAME STATE
