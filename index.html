@@ -34,12 +34,18 @@ function resize(){
 // =============================================
 const GRAVITY=1400;
 const JUMP_VEL=-520;
-const WALK_SPEED=79;
-const KNIFE_SPEED=500;
-const KNIFE_GRAVITY=180;
+const WALK_SPEED=87;
 const AIM_SPEED=2.5;
 const FLOOR_H=32;
 const MAX_HP=2;
+
+// Knife physics: same gravity as world.
+// Max throw height should be ~70% of screen height so it always comes back down.
+// v² = 2*g*h → v = sqrt(2 * 1400 * 0.7 * CH) but CH varies.
+// We use a fixed speed that works well for typical screens (~350px landscape).
+// v = sqrt(2 * 1400 * 220) ≈ 785 → use 340 for a moderate arc feel.
+// This means straight-up throw rises ~41px (340²/2800), always lands back.
+const KNIFE_THROW_SPEED = 340;
 
 // ── SKINS ──
 const SKINS=[
@@ -267,10 +273,11 @@ function throwKnife(idx){
   const dir = p.facing;
   const baseAngle = dir===1 ? 0 : Math.PI;
   const angle = baseAngle + p.aimAngle * dir;
+  // Fixed total speed — higher angle = more vertical, less horizontal (true projectile)
   knives.push({
     x: p.x + dir*14, y: p.y - 6,
-    vx: Math.cos(angle)*KNIFE_SPEED,
-    vy: Math.sin(angle)*KNIFE_SPEED,
+    vx: Math.cos(angle) * KNIFE_THROW_SPEED,
+    vy: Math.sin(angle) * KNIFE_THROW_SPEED,
     rotation: angle,
     owner: idx,
     active: true,
@@ -290,7 +297,7 @@ function updateKnives(dt){
       continue;
     }
     k.timer += dt;
-    k.vy += KNIFE_GRAVITY * dt;
+    k.vy += GRAVITY * dt;  // same gravity as world = true projectile
     k.x += k.vx * dt;
     k.y += k.vy * dt;
     k.rotation = Math.atan2(k.vy, k.vx);
@@ -313,8 +320,8 @@ function updateKnives(dt){
     const floorY = getFloorY();
     if(k.y > floorY){ k.active=false; k.y=floorY; spawnSparks(k.x,floorY); continue; }
 
-    // Out of bounds
-    if(k.x<-50 || k.x>CW+50 || k.y<-50){ knives.splice(i,1); continue; }
+    // Out of bounds (only horizontal — vertical ones will fall back)
+    if(k.x<-50 || k.x>CW+50){ knives.splice(i,1); continue; }
   }
 }
 
