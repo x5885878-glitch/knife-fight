@@ -39,8 +39,10 @@ function checkOrientation(){
   isPortrait = h > w;
   if(isPortrait){
     rotateMsg.style.display='flex';
+    rotateMsg.style.pointerEvents='auto';
   } else {
     rotateMsg.style.display='none';
+    rotateMsg.style.pointerEvents='none';
   }
 }
 
@@ -413,11 +415,13 @@ function updateParticles(dt){
 
 // =============================================
 //  INPUT — Simultaneous multi-touch
+//  Bind to document for iOS Safari compatibility
 // =============================================
 const activeTouches={};
 
-canvas.addEventListener('touchstart',e=>{
+document.addEventListener('touchstart',e=>{
   e.preventDefault();
+  if(isPortrait) return;
   for(const t of e.changedTouches){
     const side = t.clientX < CW/2 ? 0 : 1;
     activeTouches[t.identifier] = {startX:t.clientX, startY:t.clientY, side, moved:false};
@@ -428,7 +432,7 @@ canvas.addEventListener('touchstart',e=>{
   }
 },{passive:false});
 
-canvas.addEventListener('touchmove',e=>{
+document.addEventListener('touchmove',e=>{
   e.preventDefault();
   for(const t of e.changedTouches){
     const info=activeTouches[t.identifier];
@@ -441,7 +445,7 @@ canvas.addEventListener('touchmove',e=>{
   }
 },{passive:false});
 
-canvas.addEventListener('touchend',e=>{
+document.addEventListener('touchend',e=>{
   e.preventDefault();
   for(const t of e.changedTouches){
     const info=activeTouches[t.identifier];
@@ -454,7 +458,8 @@ canvas.addEventListener('touchend',e=>{
 
 // Mouse fallback
 let mouseInfo=null;
-canvas.addEventListener('mousedown',e=>{
+document.addEventListener('mousedown',e=>{
+  if(isPortrait) return;
   const side=e.clientX<CW/2?0:1;
   mouseInfo={startX:e.clientX,startY:e.clientY,side,moved:false};
   if(gameState==='menu'){gameState='charSelect';selectingPlayer=0;return;}
@@ -462,7 +467,7 @@ canvas.addEventListener('mousedown',e=>{
   if(gameState==='charSelect'){handleCharTap(e.clientX,e.clientY);return;}
   if(gameState==='mapSelect'){handleMapTap(e.clientX,e.clientY);return;}
 });
-canvas.addEventListener('mousemove',e=>{
+document.addEventListener('mousemove',e=>{
   if(mouseInfo && !mouseInfo.moved){
     if(e.clientY-mouseInfo.startY<-25){
       mouseInfo.moved=true;
@@ -470,7 +475,7 @@ canvas.addEventListener('mousemove',e=>{
     }
   }
 });
-canvas.addEventListener('mouseup',e=>{
+document.addEventListener('mouseup',e=>{
   if(mouseInfo && !mouseInfo.moved && gameState==='playing') throwKnife(mouseInfo.side);
   mouseInfo=null;
 });
