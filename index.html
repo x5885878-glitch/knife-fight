@@ -33,8 +33,8 @@ function resize(){
 //  CONFIG
 // =============================================
 const GRAVITY=1400;
-const JUMP_VEL=-420;
-const WALK_SPEED=65;
+const JUMP_VEL=-520;
+const WALK_SPEED=72;
 const KNIFE_SPEED=500;
 const KNIFE_GRAVITY=180;
 const AIM_SPEED=2.5;
@@ -64,7 +64,8 @@ function buildMaps(){
   let highY = floorTop - playH * 0.55; // 55% up
 
   // Safety: clamp gaps to max jump height
-  const maxJump = 60;
+  // Jump height = 520²/(2×1400) ≈ 96px, use 88 for safety
+  const maxJump = 88;
   if (floorTop - lowY > maxJump) lowY = floorTop - maxJump;
   if (lowY - highY > maxJump) highY = lowY - maxJump;
 
@@ -115,6 +116,7 @@ function buildMaps(){
 let maps=[];
 const MAPS_COUNT=3;
 const P_COLORS=['#ff4455','#44aaff'];
+const P_NAMES=['紅方','藍方'];
 
 // Now safe to call resize (all constants defined)
 resize();
@@ -335,7 +337,7 @@ function hitPlayer(target, knife){
     spawnDeathParticles(target.x, target.y);
     shakeTimer=0.5; shakeIntensity=14; flashAlpha=0.5;
     koWinner = 1 - target.idx;
-    msgText = `P${koWinner+1} 獲勝！`;
+    msgText = `${P_NAMES[koWinner]} 獲勝！`;
     msgTimer = 99;
     gameState = 'ko';
     restartTimer = 2.0;
@@ -628,7 +630,7 @@ function drawQChar(p){
   ctx.font='bold 8px Chakra Petch,sans-serif';
   ctx.textAlign='center';ctx.textBaseline='middle';
   ctx.fillStyle=P_COLORS[p.idx];
-  ctx.fillText(`P${p.idx+1}`,0,hpBarY-6);
+  ctx.fillText(P_NAMES[p.idx],0,hpBarY-6);
 
   // Bandage if hurt
   if(p.hp<MAX_HP && p.alive){
@@ -754,20 +756,20 @@ function drawHUD(){
   // P1 left
   ctx.textAlign='left';ctx.fillStyle=P_COLORS[0];
   ctx.shadowColor=P_COLORS[0];ctx.shadowBlur=4;
-  ctx.fillText('P1',8,sz+4);ctx.shadowBlur=0;
+  ctx.fillText(P_NAMES[0],8,sz+4);ctx.shadowBlur=0;
   for(let i=0;i<MAX_HP;i++) drawHeart(32+i*16,sz/2+2,i<players[0].hp?'#ff4455':'#333',6);
 
   // P2 right
   ctx.textAlign='right';ctx.fillStyle=P_COLORS[1];
   ctx.shadowColor=P_COLORS[1];ctx.shadowBlur=4;
-  ctx.fillText('P2',CW-8,sz+4);ctx.shadowBlur=0;
+  ctx.fillText(P_NAMES[1],CW-8,sz+4);ctx.shadowBlur=0;
   for(let i=0;i<MAX_HP;i++) drawHeart(CW-34-i*16,sz/2+2,i<players[1].hp?'#44aaff':'#333',6);
 
   // Hint
   ctx.textAlign='center';
   ctx.font=`400 ${Math.min(9,CW*0.015)}px Noto Sans TC,sans-serif`;
   ctx.fillStyle='rgba(255,255,255,0.18)';
-  ctx.fillText('↑滑跳躍 · 點擊投刀 · 左半P1 / 右半P2',CW/2,CH-5);
+  ctx.fillText('↑滑跳躍 · 點擊投刀 · 左半紅方 / 右半藍方',CW/2,CH-5);
 }
 
 function drawHeart(cx,cy,color,s){
@@ -819,7 +821,7 @@ function drawCharSelect(){
   const pc=P_COLORS[selectingPlayer];
   ctx.font=`700 ${Math.min(CW*0.032,18)}px Noto Sans TC,sans-serif`;
   ctx.fillStyle=pc;ctx.shadowColor=pc;ctx.shadowBlur=6;
-  ctx.fillText(`P${selectingPlayer+1} 選擇角色`,CW/2,CH*0.12);ctx.shadowBlur=0;
+  ctx.fillText(`${P_NAMES[selectingPlayer]} 選擇角色`,CW/2,CH*0.12);ctx.shadowBlur=0;
 
   const cardW=Math.min(CW*0.20,110),gap=16;
   const totalW=SKINS.length*cardW+(SKINS.length-1)*gap;
@@ -903,7 +905,7 @@ function drawKOScreen(){
   ctx.textAlign='center';ctx.textBaseline='middle';
   ctx.font=`700 ${Math.min(CW*0.06,34)}px Chakra Petch,sans-serif`;
   ctx.shadowColor=P_COLORS[koWinner];ctx.shadowBlur=18;ctx.fillStyle=P_COLORS[koWinner];
-  ctx.fillText(`P${koWinner+1} 獲勝！`,CW/2,CH*0.38);ctx.shadowBlur=0;
+  ctx.fillText(`${P_NAMES[koWinner]} 獲勝！`,CW/2,CH*0.38);ctx.shadowBlur=0;
   if(restartTimer<=0){
     const t=performance.now()/1000;
     ctx.font=`700 ${Math.min(CW*0.025,13)}px Noto Sans TC,sans-serif`;
