@@ -45,7 +45,7 @@ const MAX_HP=2;
 // We use a fixed speed that works well for typical screens (~350px landscape).
 // v = sqrt(2 * 1400 * 220) ≈ 785 → use 340 for a moderate arc feel.
 // This means straight-up throw rises ~41px (340²/2800), always lands back.
-const KNIFE_THROW_SPEED = 340;
+const KNIFE_THROW_SPEED = 748;
 
 // ── SKINS ──
 const SKINS=[
@@ -55,68 +55,96 @@ const SKINS=[
 ];
 
 // ── MAPS ──
-// Platforms use PERCENTAGE of play area so they work at any resolution.
-// Play area = from FLOOR top (CH-FLOOR_H) up to 15% from top.
-// We define 2 tiers: low (~35% up from floor) and high (~65% up from floor).
-// Jump height = v²/(2g) = 420²/2800 ≈ 63px.
-// At each tier, we verify gap < 63 and clamp if needed.
+// 3 tiers of platforms, all jumpable. Max jump = 520²/(2×1400) ≈ 96px, use 85 for safety.
 function buildMaps(){
   const floorTop = CH - FLOOR_H;
-  const playH = floorTop * 0.70; // usable vertical space (70% of screen)
-  const topMargin = floorTop - playH; // where highest platform can be
+  const playH = floorTop * 0.75;
+  const maxJump = 85;
 
-  // Two tiers as fractions of playH above floor
-  let lowY  = floorTop - playH * 0.30; // 30% up
-  let highY = floorTop - playH * 0.55; // 55% up
+  // 3 tiers
+  let t1 = floorTop - playH * 0.22;  // low
+  let t2 = floorTop - playH * 0.44;  // mid
+  let t3 = floorTop - playH * 0.62;  // high
 
-  // Safety: clamp gaps to max jump height
-  // Jump height = 520²/(2×1400) ≈ 96px, use 88 for safety
-  const maxJump = 88;
-  if (floorTop - lowY > maxJump) lowY = floorTop - maxJump;
-  if (lowY - highY > maxJump) highY = lowY - maxJump;
+  // Clamp each gap
+  if (floorTop - t1 > maxJump) t1 = floorTop - maxJump;
+  if (t1 - t2 > maxJump) t2 = t1 - maxJump;
+  if (t2 - t3 > maxJump) t3 = t2 - maxJump;
 
-  const pw = (w) => w * CW; // platform width helper
+  const pw = (w) => w * CW;
 
   return [
     {
       name:'古城', bg1:'#1a1a2e', bg2:'#16213e', platColor:'#4a4a6a',
       floorColor:'#3d3d5c', accent:'#e94560', decorType:'torch',
       platforms:[
-        {x: pw(0.03), y:lowY, w:pw(0.18), h:5},
-        {x: pw(0.26), y:lowY, w:pw(0.14), h:5},
-        {x: pw(0.60), y:lowY, w:pw(0.14), h:5},
-        {x: pw(0.79), y:lowY, w:pw(0.18), h:5},
-        {x: pw(0.12), y:highY, w:pw(0.20), h:5},
-        {x: pw(0.68), y:highY, w:pw(0.20), h:5},
-        {x: pw(0.38), y:highY - maxJump*0.3, w:pw(0.24), h:5},
+        // Tier 1 — low (5 platforms, staggered)
+        {x:pw(0.02), y:t1,       w:pw(0.13), h:5},
+        {x:pw(0.19), y:t1-8,     w:pw(0.10), h:5},
+        {x:pw(0.44), y:t1,       w:pw(0.12), h:5},
+        {x:pw(0.71), y:t1-8,     w:pw(0.10), h:5},
+        {x:pw(0.85), y:t1,       w:pw(0.13), h:5},
+        // Tier 2 — mid (4 platforms)
+        {x:pw(0.06), y:t2,       w:pw(0.14), h:5},
+        {x:pw(0.28), y:t2+6,     w:pw(0.12), h:5},
+        {x:pw(0.58), y:t2+6,     w:pw(0.12), h:5},
+        {x:pw(0.78), y:t2,       w:pw(0.14), h:5},
+        // Tier 3 — high (3 platforms)
+        {x:pw(0.14), y:t3,       w:pw(0.16), h:5},
+        {x:pw(0.42), y:t3-5,     w:pw(0.16), h:5},
+        {x:pw(0.70), y:t3,       w:pw(0.16), h:5},
       ]
     },
     {
       name:'火山', bg1:'#1a0a00', bg2:'#2d1500', platColor:'#6a4020',
       floorColor:'#4a2a10', accent:'#ff6b35', decorType:'lava',
       platforms:[
-        {x: pw(0.04), y:lowY, w:pw(0.16), h:5},
-        {x: pw(0.25), y:lowY, w:pw(0.14), h:5},
-        {x: pw(0.61), y:lowY, w:pw(0.14), h:5},
-        {x: pw(0.80), y:lowY, w:pw(0.16), h:5},
-        {x: pw(0.08), y:highY, w:pw(0.18), h:5},
-        {x: pw(0.40), y:highY, w:pw(0.20), h:5},
-        {x: pw(0.74), y:highY, w:pw(0.18), h:5},
+        // Tier 1 — asymmetric layout
+        {x:pw(0.03), y:t1,       w:pw(0.11), h:5},
+        {x:pw(0.18), y:t1-12,    w:pw(0.08), h:5},
+        {x:pw(0.32), y:t1,       w:pw(0.14), h:5},
+        {x:pw(0.54), y:t1-6,     w:pw(0.10), h:5},
+        {x:pw(0.70), y:t1,       w:pw(0.08), h:5},
+        {x:pw(0.84), y:t1-10,    w:pw(0.12), h:5},
+        // Tier 2 — floating islands
+        {x:pw(0.08), y:t2+8,     w:pw(0.10), h:5},
+        {x:pw(0.24), y:t2,       w:pw(0.15), h:5},
+        {x:pw(0.48), y:t2+4,     w:pw(0.12), h:5},
+        {x:pw(0.68), y:t2,       w:pw(0.10), h:5},
+        {x:pw(0.84), y:t2+8,     w:pw(0.10), h:5},
+        // Tier 3 — narrow peaks
+        {x:pw(0.16), y:t3+4,     w:pw(0.12), h:5},
+        {x:pw(0.40), y:t3,       w:pw(0.20), h:5},
+        {x:pw(0.72), y:t3+4,     w:pw(0.12), h:5},
       ]
     },
     {
       name:'冰原', bg1:'#0a1628', bg2:'#152238', platColor:'#5588aa',
       floorColor:'#446688', accent:'#00d4ff', decorType:'snow',
       platforms:[
-        {x: pw(0.05), y:lowY, w:pw(0.20), h:5},
-        {x: pw(0.35), y:lowY, w:pw(0.14), h:5},
-        {x: pw(0.55), y:lowY, w:pw(0.14), h:5},
-        {x: pw(0.75), y:lowY, w:pw(0.20), h:5},
-        {x: pw(0.18), y:highY, w:pw(0.22), h:5},
-        {x: pw(0.60), y:highY, w:pw(0.22), h:5},
-        {x: pw(0.36), y:highY - maxJump*0.3, w:pw(0.28), h:5},
+        // Tier 1 — wide with small gaps
+        {x:pw(0.02), y:t1,       w:pw(0.16), h:5},
+        {x:pw(0.22), y:t1-6,     w:pw(0.10), h:5},
+        {x:pw(0.36), y:t1,       w:pw(0.10), h:5},
+        {x:pw(0.52), y:t1-6,     w:pw(0.10), h:5},
+        {x:pw(0.66), y:t1,       w:pw(0.10), h:5},
+        {x:pw(0.82), y:t1-6,     w:pw(0.16), h:5},
+        // Tier 2 — zigzag
+        {x:pw(0.04), y:t2,       w:pw(0.12), h:5},
+        {x:pw(0.22), y:t2+10,    w:pw(0.14), h:5},
+        {x:pw(0.44), y:t2,       w:pw(0.12), h:5},
+        {x:pw(0.64), y:t2+10,    w:pw(0.14), h:5},
+        {x:pw(0.84), y:t2,       w:pw(0.12), h:5},
+        // Tier 3 — crown
+        {x:pw(0.10), y:t3,       w:pw(0.14), h:5},
+        {x:pw(0.32), y:t3-8,     w:pw(0.10), h:5},
+        {x:pw(0.50), y:t3,       w:pw(0.14), h:5},
+        {x:pw(0.72), y:t3-8,     w:pw(0.10), h:5},
+        {x:pw(0.86), y:t3,       w:pw(0.10), h:5},
       ]
     }
+  ];
+}
   ];
 }
 let maps=[];
